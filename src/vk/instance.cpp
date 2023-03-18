@@ -3,8 +3,12 @@
 namespace vk {
 
 Instance::Instance(InstanceCreateInfo &create_info) {
-  create_info.layers.push_back("VK_LAYER_KHRONOS_validation");
+  CreateInstance(create_info);
+  EnumPhysicalDevices();
+}
 
+void Instance::CreateInstance(InstanceCreateInfo &create_info) {
+  create_info.layers.push_back("VK_LAYER_KHRONOS_validation");
   create_info.extensions.push_back("VK_EXT_debug_utils");
 
   VkInstanceCreateInfo vk_create_info;
@@ -24,11 +28,24 @@ Instance::Instance(InstanceCreateInfo &create_info) {
   vk_create_info.ppEnabledExtensionNames = extensions_names_pp.data();
 
   VkResult result = vkCreateInstance(&vk_create_info, nullptr, &handle);
-  //  if (result) {
-  if (true) {
-    string message = "cant create vk instance";
-	VulkanException e(message);
-	throw e;
+  if (result) {
+    throw VulkanException("cant create vk instance");
+  }
+}
+
+void Instance::EnumPhysicalDevices() {
+  vector<VkPhysicalDevice> raw_devices;
+
+  uint32_t count;
+  vkEnumeratePhysicalDevices(handle, &count, nullptr);
+
+  raw_devices.resize(count);
+  physical_devices.resize(count);
+  vkEnumeratePhysicalDevices(handle, &count, raw_devices.data());
+
+  for (int i = 0; i < count; i++) {
+    physical_devices[i] =
+        shared_ptr<PhysicalDevice>(new PhysicalDevice(raw_devices[i]));
   }
 }
 

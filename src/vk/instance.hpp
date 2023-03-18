@@ -1,10 +1,12 @@
 #pragma once
+#include "exception.hpp"
+#include "physical_device.hpp"
+#include "tools.hpp"
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 #include <vulkan/vulkan.h>
-#include "tools.hpp"
-#include "exception.hpp"
 
 using namespace std;
 
@@ -18,9 +20,15 @@ struct InstanceCreateInfo {
 class Instance {
 private:
   VkInstance handle;
+  vector<shared_ptr<PhysicalDevice>> physical_devices;
+
+  void CreateInstance(InstanceCreateInfo &create_info);
+  void EnumPhysicalDevices();
 
 public:
   Instance(InstanceCreateInfo &create_info);
+  Instance(Instance &) = delete;
+  Instance &operator=(Instance &) = delete;
 };
 
 } // namespace vk
