@@ -1,0 +1,12 @@
+/*
+!.clang-format
+!.gitignore
+!src
+src/*
+!src/*.cpp
+!src/*.hpp
+!CMakeLists.txt
+application.cpp
+application.hh
+vulkan.cpp
+vulkan.hh
