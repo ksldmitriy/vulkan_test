@@ -1,5 +1,6 @@
+#pragma once
 #include <iostream>
-#include "vk/instance.hpp"
+#include "vulkan_application.hpp"
 
 using namespace std;
 

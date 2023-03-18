@@ -25,9 +25,10 @@ Instance::Instance(InstanceCreateInfo &create_info) {
 
   VkResult result = vkCreateInstance(&vk_create_info, nullptr, &handle);
   //  if (result) {
-  if(true){
+  if (true) {
     string message = "cant create vk instance";
-	
+	VulkanException e(message);
+	throw e;
   }
 }
 

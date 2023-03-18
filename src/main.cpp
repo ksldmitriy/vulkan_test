@@ -2,12 +2,13 @@
 #include "vk/instance.hpp"
 
 int main() {
+  VulkanApplication application;
+
   try {
-    vk::InstanceCreateInfo instance_create_info;
-    vk::Instance instance(instance_create_info);
+    application.Run();
   } catch (Exception &e) {
     cout << (string)e << endl;
-  }
+  };
 
   cout << "aeee" << endl;
 }

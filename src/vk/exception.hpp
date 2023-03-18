@@ -3,7 +3,7 @@
 
 using namespace std;
 
-class VulkanException : Exception {
+class VulkanException : public Exception {
 private:
   string message;
 
