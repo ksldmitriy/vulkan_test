@@ -4,6 +4,7 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 #include "tools.hpp"
+#include "exception.hpp"
 
 using namespace std;
 

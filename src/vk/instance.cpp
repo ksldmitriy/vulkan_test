@@ -24,8 +24,10 @@ Instance::Instance(InstanceCreateInfo &create_info) {
   vk_create_info.ppEnabledExtensionNames = extensions_names_pp.data();
 
   VkResult result = vkCreateInstance(&vk_create_info, nullptr, &handle);
-  if (result) {
-    cout << "cant create vk instance" << endl;
+  //  if (result) {
+  if(true){
+    string message = "cant create vk instance";
+	
   }
 }
 
