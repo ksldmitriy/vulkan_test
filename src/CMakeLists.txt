@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_TYPE Debug)
 
 #project
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} main.cpp vk/instance.cpp vk/tools.cpp)
 
 # libs
 
