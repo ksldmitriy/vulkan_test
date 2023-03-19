@@ -45,7 +45,7 @@ void Instance::EnumPhysicalDevices() {
 
   for (int i = 0; i < count; i++) {
     physical_devices[i] =
-        shared_ptr<PhysicalDevice>(new PhysicalDevice(raw_devices[i]));
+        unique_ptr<PhysicalDevice>(new PhysicalDevice(raw_devices[i]));
   }
 }
 

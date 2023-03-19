@@ -20,12 +20,13 @@ struct InstanceCreateInfo {
 class Instance {
 private:
   VkInstance handle;
-  vector<shared_ptr<PhysicalDevice>> physical_devices;
 
   void CreateInstance(InstanceCreateInfo &create_info);
   void EnumPhysicalDevices();
 
 public:
+  vector<unique_ptr<PhysicalDevice>> physical_devices;
+
   Instance(InstanceCreateInfo &create_info);
   Instance(Instance &) = delete;
   Instance &operator=(Instance &) = delete;
