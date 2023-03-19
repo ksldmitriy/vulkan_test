@@ -1,4 +1,5 @@
 #include "device.hpp"
+#include "device_memory.hpp"
 
 namespace vk {
 
@@ -41,4 +42,9 @@ Device::Device(PhysicalDevice& physical_device, DeviceCreateInfo &create_info) {
   }
 }
 
+  unique_ptr <DeviceMemory> Device::AllocateMemory(VkDeviceSize size, uint32_t type){
+	unique_ptr<DeviceMemory> memory = unique_ptr<DeviceMemory>(new DeviceMemory(handle, size, type));
+	return memory;
+  }
+  
 } // namespace vk

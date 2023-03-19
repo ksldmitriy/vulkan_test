@@ -18,7 +18,11 @@ public:
   PhysicalDevice(VkPhysicalDevice handle);
   PhysicalDevice(PhysicalDevice &) = delete;
   PhysicalDevice &operator=(PhysicalDevice &) = delete;
+
   uint32_t ChooseQueueFamily(VkQueueFlags requirements);
+  uint32_t ChooseMemoryType(VkMemoryPropertyFlags properties,
+                            VkMemoryHeapFlags heap_properties);
+
   friend class Device;
 };
 

@@ -28,4 +28,26 @@ uint32_t PhysicalDevice::ChooseQueueFamily(VkQueueFlags requirements) {
   throw VulkanException("cant find needed queue");
 };
 
+uint32_t PhysicalDevice::ChooseMemoryType(VkMemoryPropertyFlags properties,
+                                          VkMemoryHeapFlags heap_properties) {
+  bool valid_heaps[VK_MAX_MEMORY_HEAPS] = {0};
+
+  for (int i = 0; i < memory_properties.memoryHeapCount; i++) {
+    VkMemoryHeap heap = memory_properties.memoryHeaps[i];
+    if ((heap.flags & heap_properties) == heap_properties) {
+      valid_heaps[i] = true;
+    };
+  }
+
+  for (int i = 0; i < memory_properties.memoryTypeCount; i++) {
+    VkMemoryType memory_type = memory_properties.memoryTypes[i];
+    if (valid_heaps[memory_type.heapIndex] &&
+        (memory_type.propertyFlags & properties) == properties) {
+      return i;
+    }
+  }
+
+  throw VulkanException("cant find needed memory type");
+}
+
 } // namespace vk

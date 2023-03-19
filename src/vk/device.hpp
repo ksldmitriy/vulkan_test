@@ -1,3 +1,4 @@
+#pragma once
 #include "exception.hpp"
 #include "physical_device.hpp"
 #include "tools.hpp"
@@ -5,6 +6,8 @@
 using namespace std;
 
 namespace vk {
+
+class DeviceMemory;
 
 struct DeviceCreateInfo {
   vector<string> extensions;
@@ -21,6 +24,7 @@ public:
   Device(PhysicalDevice &physical_device, DeviceCreateInfo &create_info);
   Device(Device &) = delete;
   Device &operator=(Device &) = delete;
+  unique_ptr <DeviceMemory> AllocateMemory(VkDeviceSize size, uint32_t type);
 };
 
 } // namespace vk
