@@ -27,9 +27,21 @@ void DeviceMemory::Free() {
   }
 }
 
-unique_ptr<Buffer> DeviceMemory::CreateBuffer(BufferCreateInfo &create_info) {
-  unique_ptr<Buffer> buffer(new Buffer(host_device, create_info));
-  return buffer;
+void DeviceMemory::BindBuffer(Buffer &buffer) {
+  VkMemoryRequirements requirements;
+  VkDeviceSize pos =
+      FindPlaceForBuffer(requirements.size, requirements.alignment);
+
+  VkResult result =
+      vkBindBufferMemory(host_device, buffer.GetHandle(), handle, pos);
+  if (result) {
+    throw VulkanException("cant bind buffer to memory");
+  }
+}
+
+VkDeviceSize DeviceMemory::FindPlaceForBuffer(VkDeviceSize size,
+                                              VkDeviceSize alignment) {
+  return 0;
 }
 
 } // namespace vk

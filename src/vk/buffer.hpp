@@ -15,12 +15,16 @@ struct BufferCreateInfo {
 class Buffer {
 private:
   VkBuffer handle;
-
-  Buffer(VkDevice device, BufferCreateInfo& create_info);
+  VkDeviceSize size;
+  VkMemoryRequirements requirements;
 
 public:
+  Buffer(VkDevice device, BufferCreateInfo &create_info);
 
-  friend class DeviceMemory;
+  VkBuffer GetHandle();
+  VkMemoryRequirements GetMemoryRequirements();
+  uint32_t GetMemoryTypes();
+  VkDeviceSize GetSize();
 };
 
 } // namespace vk

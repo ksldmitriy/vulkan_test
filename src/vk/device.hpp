@@ -24,7 +24,8 @@ public:
   Device(PhysicalDevice &physical_device, DeviceCreateInfo &create_info);
   Device(Device &) = delete;
   Device &operator=(Device &) = delete;
-  unique_ptr <DeviceMemory> AllocateMemory(VkDeviceSize size, uint32_t type);
+
+  VkDevice GetHandle();
 };
 
 } // namespace vk

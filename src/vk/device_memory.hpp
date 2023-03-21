@@ -12,17 +12,15 @@ private:
   VkDeviceMemory handle;
   VkDeviceSize size;
 
-  DeviceMemory(VkDevice device, VkDeviceSize size, uint32_t type);
-
+  VkDeviceSize FindPlaceForBuffer(VkDeviceSize size, VkDeviceSize alignment);
 public:
+  DeviceMemory(VkDevice device, VkDeviceSize size, uint32_t type);
   DeviceMemory(DeviceMemory &) = delete;
   DeviceMemory &operator=(DeviceMemory &) = delete;
   ~DeviceMemory();
 
-  unique_ptr<Buffer> CreateBuffer(BufferCreateInfo& create_info);
+  void BindBuffer(Buffer& buffer);
   void Free();
- 
-  friend Device;
 };
 
 } // namespace vk

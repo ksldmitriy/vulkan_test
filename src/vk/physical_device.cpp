@@ -29,7 +29,8 @@ uint32_t PhysicalDevice::ChooseQueueFamily(VkQueueFlags requirements) {
 };
 
 uint32_t PhysicalDevice::ChooseMemoryType(VkMemoryPropertyFlags properties,
-                                          VkMemoryHeapFlags heap_properties) {
+                                          VkMemoryHeapFlags heap_properties,
+                                          uint32_t memory_types) {
   bool valid_heaps[VK_MAX_MEMORY_HEAPS] = {0};
 
   for (int i = 0; i < memory_properties.memoryHeapCount; i++) {
@@ -42,7 +43,8 @@ uint32_t PhysicalDevice::ChooseMemoryType(VkMemoryPropertyFlags properties,
   for (int i = 0; i < memory_properties.memoryTypeCount; i++) {
     VkMemoryType memory_type = memory_properties.memoryTypes[i];
     if (valid_heaps[memory_type.heapIndex] &&
-        (memory_type.propertyFlags & properties) == properties) {
+        (memory_type.propertyFlags & properties) == properties &&
+        (1 << i & memory_types)) {
       return i;
     }
   }

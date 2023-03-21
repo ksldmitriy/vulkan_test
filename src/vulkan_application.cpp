@@ -19,18 +19,23 @@ void VulkanApplication::Run() {
   device = unique_ptr<vk::Device>(
       new vk::Device(physical_device, device_create_info));
 
+  // create buffer
+  vk::BufferCreateInfo buffer_create_info;
+  buffer_create_info.size = 1024;
+  buffer_create_info.usage =
+      VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+  buffer_create_info.queue = queue_family;
+  unique_ptr<vk::Buffer> buffer(
+      new vk::Buffer(device->GetHandle(), buffer_create_info));
+
   // allocate memory
   VkMemoryPropertyFlags memory_requerments =
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
   VkMemoryHeapFlags heap_requerments = 0;
-  uint32_t memory_type =
-      physical_device.ChooseMemoryType(memory_requerments, heap_requerments);
-  unique_ptr<vk::DeviceMemory> memory =
-      device->AllocateMemory(1024, memory_type);
+  uint32_t memory_type = physical_device.ChooseMemoryType(
+      memory_requerments, heap_requerments, buffer->GetMemoryTypes());
+  unique_ptr<vk::DeviceMemory> memory(
+      new vk::DeviceMemory(device->GetHandle(), 1024, memory_type));
 
-  vk::BufferCreateInfo buffer_create_info;
-  buffer_create_info.queue = queue_family;
-  buffer_create_info.size = 1024;
-  buffer_create_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-  unique_ptr<vk::Buffer> buffer = memory->CreateBuffer(buffer_create_info);
+  memory->BindBuffer(*buffer);
 }

@@ -3,7 +3,7 @@
 
 namespace vk {
 
-Device::Device(PhysicalDevice& physical_device, DeviceCreateInfo &create_info) {
+Device::Device(PhysicalDevice &physical_device, DeviceCreateInfo &create_info) {
   // queue create info
   VkDeviceQueueCreateInfo vk_queue_create_info;
   vk_queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -34,7 +34,7 @@ Device::Device(PhysicalDevice& physical_device, DeviceCreateInfo &create_info) {
   vk_create_info.ppEnabledExtensionNames = extensions_names_pp.data();
 
   vk_create_info.pEnabledFeatures = &create_info.features;
-  
+
   VkResult result =
       vkCreateDevice(physical_device.handle, &vk_create_info, nullptr, &handle);
   if (result) {
@@ -42,9 +42,6 @@ Device::Device(PhysicalDevice& physical_device, DeviceCreateInfo &create_info) {
   }
 }
 
-  unique_ptr <DeviceMemory> Device::AllocateMemory(VkDeviceSize size, uint32_t type){
-	unique_ptr<DeviceMemory> memory = unique_ptr<DeviceMemory>(new DeviceMemory(handle, size, type));
-	return memory;
-  }
-  
+VkDevice Device::GetHandle() { return handle; }
+
 } // namespace vk
