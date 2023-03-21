@@ -4,6 +4,7 @@ namespace vk {
 
 DeviceMemory::DeviceMemory(VkDevice device, VkDeviceSize size, uint32_t type) {
   host_device = device;
+  this->size = size;
 
   VkMemoryAllocateInfo vk_allocate_info;
   vk_allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -16,6 +17,19 @@ DeviceMemory::DeviceMemory(VkDevice device, VkDeviceSize size, uint32_t type) {
   if (result) {
     throw VulkanException("cant allocate memory");
   }
+}
+
+DeviceMemory::~DeviceMemory() { Free(); }
+
+void DeviceMemory::Free() {
+  if (handle) {
+    vkFreeMemory(host_device, handle, nullptr);
+  }
+}
+
+unique_ptr<Buffer> DeviceMemory::CreateBuffer(BufferCreateInfo &create_info) {
+  unique_ptr<Buffer> buffer(new Buffer(host_device, create_info));
+  return buffer;
 }
 
 } // namespace vk
