@@ -20,7 +20,9 @@ private:
 
 public:
   Buffer(VkDevice device, BufferCreateInfo &create_info);
-
+  Buffer(Buffer&) = delete;
+  Buffer& operator=(Buffer&) = delete;
+  
   VkBuffer GetHandle();
   VkMemoryRequirements GetMemoryRequirements();
   uint32_t GetMemoryTypes();

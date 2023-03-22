@@ -25,7 +25,7 @@ private:
   void EnumPhysicalDevices();
 
 public:
-  vector<unique_ptr<PhysicalDevice>> physical_devices;
+  vector<shared_ptr<PhysicalDevice>> physical_devices;
 
   Instance(InstanceCreateInfo &create_info);
   Instance(Instance &) = delete;
