@@ -1,6 +1,7 @@
 #pragma once
 #include "buffer.hpp"
 #include "device.hpp"
+#include <limits>
 
 using namespace std;
 
@@ -8,25 +9,30 @@ namespace vk {
 
 class DeviceMemory {
 private:
-  struct MemoryRange {
-	bool empty;
-	VkDeviceSize offset;
-	VkDeviceSize size;
- };
+  struct MemorySegment {
+    bool empty;
+    VkDeviceSize offset;
+    VkDeviceSize size;
+  };
 
   VkDevice host_device;
   VkDeviceMemory handle;
   VkDeviceSize size;
-  vector<MemoryRange> memory_ranges;
+  vector<MemorySegment> memory_segments;
 
-  uint32_t FindSuitableRange(VkDeviceSize size, VkDeviceSize alignment);
+  uint32_t FindSuitableSegment(VkDeviceSize size, VkDeviceSize alignment);
+  void OccupieSegment(uint32_t segment_index, VkDeviceSize size);
   VkDeviceSize GetAlignedPos(VkDeviceSize pos, VkDeviceSize alignment);
+  void GetAlignedSegments(MemorySegment &segment, VkDeviceSize alignment,
+                       VkDeviceSize &aligned_pos, VkDeviceSize &aligned_size);
+
 public:
   DeviceMemory(VkDevice device, VkDeviceSize size, uint32_t type);
   DeviceMemory(DeviceMemory &) = delete;
   DeviceMemory &operator=(DeviceMemory &) = delete;
   ~DeviceMemory();
 
+  void PrintSegments();
   void BindBuffer(Buffer &buffer);
   void Free();
 };

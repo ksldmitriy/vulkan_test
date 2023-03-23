@@ -35,7 +35,11 @@ void VulkanApplication::Run() {
   uint32_t memory_type = physical_device.ChooseMemoryType(
       memory_requerments, heap_requerments, buffer->GetMemoryTypes());
   unique_ptr<vk::DeviceMemory> memory(
-      new vk::DeviceMemory(device->GetHandle(), 1024, memory_type));
+      new vk::DeviceMemory(device->GetHandle(), 1024*4, memory_type));
 
+  memory->PrintSegments();
+  cout << endl;
   memory->BindBuffer(*buffer);
+
+  memory->PrintSegments();
 }
