@@ -5,7 +5,8 @@ namespace vk {
 
 Buffer::Buffer(VkDevice device, BufferCreateInfo &create_info) {
   this->device = device;
-
+  is_binded = false;
+  
   VkBufferCreateInfo vk_create_info;
   vk_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
   vk_create_info.pNext = nullptr;
@@ -26,7 +27,7 @@ Buffer::Buffer(VkDevice device, BufferCreateInfo &create_info) {
 }
 
 Buffer::~Buffer() {
-  if (handle) {
+  if (handle && is_binded) {
     Destroy();
   }
 }
@@ -34,6 +35,7 @@ Buffer::~Buffer() {
 void Buffer::Destroy() {
   memory->FreeBuffer(handle);
 
+  is_binded = false;
   vkDestroyBuffer(device, handle, nullptr);
   handle = 0;
 }

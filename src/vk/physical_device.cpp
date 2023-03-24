@@ -17,6 +17,8 @@ PhysicalDevice::PhysicalDevice(VkPhysicalDevice handle) {
                                            queue_families_properties.data());
 }
 
+VkPhysicalDevice PhysicalDevice::GetHandle() { return handle; }
+
 uint32_t PhysicalDevice::ChooseQueueFamily(VkQueueFlags requirements) {
   for (uint32_t i = 0; i < queue_families_properties.size(); i++) {
     if ((queue_families_properties[i].queueFlags & requirements) ==

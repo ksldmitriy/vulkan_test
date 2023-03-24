@@ -19,6 +19,7 @@ private:
   VkDevice device;
   VkBuffer handle;
   DeviceMemory* memory;
+  bool is_binded;
 
   VkDeviceSize size;
   VkMemoryRequirements requirements;

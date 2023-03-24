@@ -20,12 +20,11 @@ public:
   PhysicalDevice(PhysicalDevice &) = delete;
   PhysicalDevice &operator=(PhysicalDevice &) = delete;
 
+  VkPhysicalDevice GetHandle();
   uint32_t ChooseQueueFamily(VkQueueFlags requirements);
   uint32_t ChooseMemoryType(VkMemoryPropertyFlags properties,
                             VkMemoryHeapFlags heap_properties,
                             uint32_t memory_types);
-
-  friend class Device;
 };
 
 } // namespace vk

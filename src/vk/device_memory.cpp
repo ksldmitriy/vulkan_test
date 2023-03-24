@@ -58,6 +58,7 @@ void DeviceMemory::BindBuffer(Buffer &buffer) {
   }
 
   buffer.memory = this;
+  buffer.is_binded = true;
 }
 
 void DeviceMemory::FreeBuffer(VkBuffer buffer) {
