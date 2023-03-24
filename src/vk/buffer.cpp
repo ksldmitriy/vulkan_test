@@ -6,7 +6,7 @@ namespace vk {
 Buffer::Buffer(VkDevice device, BufferCreateInfo &create_info) {
   this->device = device;
   is_binded = false;
-  
+
   VkBufferCreateInfo vk_create_info;
   vk_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
   vk_create_info.pNext = nullptr;
@@ -39,6 +39,12 @@ void Buffer::Destroy() {
   vkDestroyBuffer(device, handle, nullptr);
   handle = 0;
 }
+
+void *Buffer::Map() { return memory->MapMemory(handle); }
+
+void Buffer::Flush() { memory->Flush(); }
+
+void Buffer::Unmap() { memory->Unmap(); }
 
 VkBuffer Buffer::GetHandle() { return handle; }
 

@@ -16,19 +16,27 @@ private:
 	VkBuffer buffer;
   };
 
-  VkDevice host_device;
+  VkDevice device;
   VkDeviceMemory handle;
   VkDeviceSize size;
   vector<MemorySegment> memory_segments;
 
+  MemorySegment mapped_segment;
+
   void FreeBuffer(VkBuffer buffer);
+  uint32_t FindSegment(VkBuffer buffer);
   void FreeSegment(uint32_t segment_index);
   void MergeSegment(uint32_t segment1_index, uint32_t segment2_index);
+
   void OccupieSegment(uint32_t segment_index, VkDeviceSize size, VkBuffer buffer);
   uint32_t FindSuitableSegment(VkDeviceSize size, VkDeviceSize alignment);
   VkDeviceSize GetAlignedPos(VkDeviceSize pos, VkDeviceSize alignment);
   void GetAlignedSegments(MemorySegment &segment, VkDeviceSize alignment,
                        VkDeviceSize &aligned_pos, VkDeviceSize &aligned_size);
+
+  void* MapMemory(VkBuffer buffer);
+  void Flush();
+  void Unmap();
 public:
   DeviceMemory(VkDevice device, VkDeviceSize size, uint32_t type);
   DeviceMemory(DeviceMemory &) = delete;

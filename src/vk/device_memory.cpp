@@ -3,7 +3,7 @@
 namespace vk {
 
 DeviceMemory::DeviceMemory(VkDevice device, VkDeviceSize size, uint32_t type) {
-  host_device = device;
+  this->device = device;
   this->size = size;
 
   VkMemoryAllocateInfo vk_allocate_info;
@@ -13,7 +13,7 @@ DeviceMemory::DeviceMemory(VkDevice device, VkDeviceSize size, uint32_t type) {
   vk_allocate_info.memoryTypeIndex = type;
 
   VkResult result =
-      vkAllocateMemory(host_device, &vk_allocate_info, nullptr, &handle);
+      vkAllocateMemory(device, &vk_allocate_info, nullptr, &handle);
   if (result) {
     throw VulkanException("cant allocate memory");
   }
@@ -28,9 +28,39 @@ DeviceMemory::DeviceMemory(VkDevice device, VkDeviceSize size, uint32_t type) {
 
 DeviceMemory::~DeviceMemory() { Free(); }
 
+void *DeviceMemory::MapMemory(VkBuffer buffer) {
+  uint32_t segment_index = FindSegment(buffer);
+  mapped_segment = memory_segments[segment_index];
+
+  void *mapped_ptr;
+  VkResult result = vkMapMemory(device, handle, mapped_segment.offset,
+                                mapped_segment.size, 0, &mapped_ptr);
+  if (result) {
+    throw VulkanException("cant map memory");
+  }
+
+  return mapped_ptr;
+}
+
+void DeviceMemory::Flush() {
+  VkMappedMemoryRange mapped_range;
+  mapped_range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+  mapped_range.pNext = nullptr;
+  mapped_range.memory = handle;
+  mapped_range.offset = mapped_segment.offset;
+  mapped_range.size = mapped_segment.size;
+
+  VkResult result = vkFlushMappedMemoryRanges(device, 1, &mapped_range);
+  if (result) {
+    throw VulkanException("cant flush mapped memory");
+  }
+}
+
+void DeviceMemory::Unmap() { vkUnmapMemory(device, handle); };
+
 void DeviceMemory::Free() {
   if (handle) {
-    vkFreeMemory(host_device, handle, nullptr);
+    vkFreeMemory(device, handle, nullptr);
   }
 }
 
@@ -52,7 +82,7 @@ void DeviceMemory::BindBuffer(Buffer &buffer) {
   OccupieSegment(segment_index, requirements.size, buffer.handle);
 
   VkResult result =
-      vkBindBufferMemory(host_device, buffer.GetHandle(), handle, pos);
+      vkBindBufferMemory(device, buffer.GetHandle(), handle, pos);
   if (result) {
     throw VulkanException("cant bind buffer to memory");
   }
@@ -62,16 +92,7 @@ void DeviceMemory::BindBuffer(Buffer &buffer) {
 }
 
 void DeviceMemory::FreeBuffer(VkBuffer buffer) {
-  uint32_t segment_index;
-  for (int i = 0; i < memory_segments.size(); i++) {
-    MemorySegment &segment = memory_segments[i];
-
-    if (segment.buffer == buffer) {
-      segment_index = i;
-      break;
-    }
-  }
-
+  uint32_t segment_index = FindSegment(buffer);
   FreeSegment(segment_index);
 };
 
@@ -83,7 +104,7 @@ void DeviceMemory::FreeSegment(uint32_t segment_index) {
   if (segment_index > 0) {
     if (memory_segments[segment_index - 1].empty) {
       MergeSegment(segment_index - 1, segment_index);
-	  segment_index--;
+      segment_index--;
     }
   }
 
@@ -107,6 +128,18 @@ void DeviceMemory::MergeSegment(uint32_t segment1_index,
 
   memory_segments[segment1_index] = merged_segment;
   memory_segments.erase(memory_segments.begin() + segment2_index);
+}
+
+uint32_t DeviceMemory::FindSegment(VkBuffer buffer) {
+  for (int i = 0; i < memory_segments.size(); i++) {
+    MemorySegment &segment = memory_segments[i];
+
+    if (segment.buffer == buffer) {
+      return i;
+    }
+  }
+
+  throw VulkanException("no suck buffer binded to device memory");
 }
 
 void DeviceMemory::OccupieSegment(uint32_t segment_index, VkDeviceSize size,

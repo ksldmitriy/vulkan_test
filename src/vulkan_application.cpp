@@ -36,6 +36,7 @@ void VulkanApplication::CreateBuffers() {
     buffers.push_back(unique_ptr<vk::Buffer>(
         new vk::Buffer(device->GetHandle(), buffer_create_info)));
   }
+
   // allocate memory
   VkMemoryPropertyFlags memory_requerments =
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
@@ -45,4 +46,18 @@ void VulkanApplication::CreateBuffers() {
 
   memory = unique_ptr<vk::DeviceMemory>(
       new vk::DeviceMemory(device->GetHandle(), 1024 * 4, memory_type));
+
+  // bind buffers
+  for (int i = 0; i < 4; i++) {
+    memory->BindBuffer(*buffers[i]);
+  }
+
+  buffers[0]->Map();
+  buffers[0]->Flush();
+  buffers[0]->Unmap();
+
+  // unbind buffer
+  for (int i = 0; i < 4; i++) {
+    buffers[i]->Destroy();
+  }
 }
