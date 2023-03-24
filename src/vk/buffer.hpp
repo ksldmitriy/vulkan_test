@@ -6,6 +6,8 @@ using namespace std;
 
 namespace vk {
 
+  class DeviceMemory;
+
 struct BufferCreateInfo {
   VkDeviceSize size;
   VkBufferUsageFlags usage;
@@ -14,7 +16,10 @@ struct BufferCreateInfo {
 
 class Buffer {
 private:
+  VkDevice device;
   VkBuffer handle;
+  DeviceMemory* memory;
+
   VkDeviceSize size;
   VkMemoryRequirements requirements;
 
@@ -22,11 +27,15 @@ public:
   Buffer(VkDevice device, BufferCreateInfo &create_info);
   Buffer(Buffer&) = delete;
   Buffer& operator=(Buffer&) = delete;
+  ~Buffer();
   
   VkBuffer GetHandle();
+  void Destroy();
   VkMemoryRequirements GetMemoryRequirements();
   uint32_t GetMemoryTypes();
   VkDeviceSize GetSize();
+
+  friend DeviceMemory;
 };
 
 } // namespace vk

@@ -49,22 +49,74 @@ void DeviceMemory::BindBuffer(Buffer &buffer) {
   MemorySegment &segment = memory_segments[segment_index];
   VkDeviceSize pos, size;
   GetAlignedSegments(segment, requirements.alignment, pos, size);
-  OccupieSegment(segment_index, requirements.size);
+  OccupieSegment(segment_index, requirements.size, buffer.handle);
 
   VkResult result =
       vkBindBufferMemory(host_device, buffer.GetHandle(), handle, pos);
   if (result) {
     throw VulkanException("cant bind buffer to memory");
   }
+
+  buffer.memory = this;
 }
 
-void DeviceMemory::OccupieSegment(uint32_t segment_index, VkDeviceSize size) {
+void DeviceMemory::FreeBuffer(VkBuffer buffer) {
+  uint32_t segment_index;
+  for (int i = 0; i < memory_segments.size(); i++) {
+    MemorySegment &segment = memory_segments[i];
+
+    if (segment.buffer == buffer) {
+      segment_index = i;
+      break;
+    }
+  }
+
+  FreeSegment(segment_index);
+};
+
+void DeviceMemory::FreeSegment(uint32_t segment_index) {
+  MemorySegment &segment = memory_segments[segment_index];
+  segment.empty = true;
+
+  // merge left segment
+  if (segment_index > 0) {
+    if (memory_segments[segment_index - 1].empty) {
+      MergeSegment(segment_index - 1, segment_index);
+	  segment_index--;
+    }
+  }
+
+  // merge right segment
+  if (segment_index < memory_segments.size() - 1) {
+    if (memory_segments[segment_index + 1].empty) {
+      MergeSegment(segment_index, segment_index + 1);
+    }
+  }
+}
+
+void DeviceMemory::MergeSegment(uint32_t segment1_index,
+                                uint32_t segment2_index) {
+  MemorySegment &segment1 = memory_segments[segment1_index];
+  MemorySegment &segment2 = memory_segments[segment2_index];
+
+  MemorySegment merged_segment;
+  merged_segment.empty = true;
+  merged_segment.offset = min(segment1.offset, segment2.offset);
+  merged_segment.size = segment1.size + segment2.size;
+
+  memory_segments[segment1_index] = merged_segment;
+  memory_segments.erase(memory_segments.begin() + segment2_index);
+}
+
+void DeviceMemory::OccupieSegment(uint32_t segment_index, VkDeviceSize size,
+                                  VkBuffer buffer) {
   MemorySegment initial_segment = memory_segments[segment_index];
 
   MemorySegment occupied_segment;
   occupied_segment.empty = false;
   occupied_segment.offset = initial_segment.offset;
   occupied_segment.size = size;
+  occupied_segment.buffer = buffer;
 
   memory_segments[segment_index] = occupied_segment;
 

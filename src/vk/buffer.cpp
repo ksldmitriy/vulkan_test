@@ -1,8 +1,11 @@
 #include "buffer.hpp"
+#include "device_memory.hpp"
 
 namespace vk {
 
 Buffer::Buffer(VkDevice device, BufferCreateInfo &create_info) {
+  this->device = device;
+
   VkBufferCreateInfo vk_create_info;
   vk_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
   vk_create_info.pNext = nullptr;
@@ -20,6 +23,19 @@ Buffer::Buffer(VkDevice device, BufferCreateInfo &create_info) {
   }
 
   vkGetBufferMemoryRequirements(device, handle, &requirements);
+}
+
+Buffer::~Buffer() {
+  if (handle) {
+    Destroy();
+  }
+}
+
+void Buffer::Destroy() {
+  memory->FreeBuffer(handle);
+
+  vkDestroyBuffer(device, handle, nullptr);
+  handle = 0;
 }
 
 VkBuffer Buffer::GetHandle() { return handle; }
