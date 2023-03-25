@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_TYPE Debug)
 
 #project
-add_executable(${PROJECT_NAME} main.cpp vulkan_application.cpp vk/buffer.cpp vk/device_memory.cpp vk/device.cpp vk/instance.cpp vk/tools.cpp vk/physical_device.cpp)
+add_executable(${PROJECT_NAME} main.cpp vulkan_application.cpp vk/buffer.cpp vk/device_memory.cpp vk/device.cpp vk/instance.cpp vk/templates.cpp vk/tools.cpp vk/physical_device.cpp)
 
 # libs
 

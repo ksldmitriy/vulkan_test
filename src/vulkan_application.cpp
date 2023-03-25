@@ -1,4 +1,5 @@
 #include "vulkan_application.hpp"
+#include "vk/templates.hpp"
 
 void VulkanApplication::Run() {
   InitVulkan();
@@ -44,20 +45,14 @@ void VulkanApplication::FillCommandBuffer() {
   }
 
   // flush mapped memory barrier
-  VkBufferMemoryBarrier buffer_memory_barrier;
-  buffer_memory_barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-  buffer_memory_barrier.pNext = nullptr;
-  buffer_memory_barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-  buffer_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-  buffer_memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  buffer_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  buffer_memory_barrier.buffer = buffers[0]->GetHandle();
-  buffer_memory_barrier.offset = 0;
-  buffer_memory_barrier.size = VK_WHOLE_SIZE;
+  VkBufferMemoryBarrier buffer_memory_barrier1 = vk::buffer_barrier_template;
+  buffer_memory_barrier1.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+  buffer_memory_barrier1.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+  buffer_memory_barrier1.buffer = buffers[0]->GetHandle();
 
   vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_HOST_BIT,
                        VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1,
-                       &buffer_memory_barrier, 0, nullptr);
+                       &buffer_memory_barrier1, 0, nullptr);
 
   // mode data
   VkBufferCopy region;
@@ -67,6 +62,16 @@ void VulkanApplication::FillCommandBuffer() {
 
   vkCmdCopyBuffer(command_buffer, buffers[0]->GetHandle(),
                   buffers[1]->GetHandle(), 1, &region);
+
+  // wait to read memory from host barrier
+  VkBufferMemoryBarrier buffer_memory_barrier2 = vk::buffer_barrier_template;
+  buffer_memory_barrier2.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+  buffer_memory_barrier2.dstAccessMask = VK_ACCESS_HOST_READ_BIT;
+  buffer_memory_barrier2.buffer = buffers[1]->GetHandle();
+
+  vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       VK_PIPELINE_STAGE_HOST_BIT, 0, 0, nullptr, 1,
+                       &buffer_memory_barrier2, 0, nullptr);
 
   vkEndCommandBuffer(command_buffer);
 }
