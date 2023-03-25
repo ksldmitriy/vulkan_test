@@ -10,4 +10,7 @@ VkBufferMemoryBarrier buffer_barrier_template = {
     .offset = 0,
     .size = VK_WHOLE_SIZE};
 
-}
+VkCommandBufferBeginInfo command_buffer_begin_info_template = {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, .pNext = nullptr};
+
+} // namespace vk

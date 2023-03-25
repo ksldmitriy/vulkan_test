@@ -33,9 +33,7 @@ void VulkanApplication::InitVulkan() {
 }
 
 void VulkanApplication::FillCommandBuffer() {
-  VkCommandBufferBeginInfo begin_info;
-  begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-  begin_info.pNext = nullptr;
+  VkCommandBufferBeginInfo begin_info = vk::command_buffer_begin_info_template;
   begin_info.flags = 0;
   begin_info.pInheritanceInfo = nullptr;
 
