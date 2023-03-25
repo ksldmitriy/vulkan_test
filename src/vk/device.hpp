@@ -20,18 +20,23 @@ class Device {
 private:
   VkDevice handle;
   shared_ptr<PhysicalDevice> physical_device;
+  VkQueue queue;
+  uint32_t queue_family;
 
 public:
-  Device(shared_ptr<PhysicalDevice> physical_device, DeviceCreateInfo &create_info);
+  Device(shared_ptr<PhysicalDevice> physical_device,
+         DeviceCreateInfo &create_info);
   Device(Device &) = delete;
   Device &operator=(Device &) = delete;
 
-  PhysicalDevice& GetPhysicalDevice();
+  PhysicalDevice &GetPhysicalDevice();
   VkDevice GetHandle();
   uint32_t ChooseQueueFamily(VkQueueFlags requirements);
   uint32_t ChooseMemoryType(VkMemoryPropertyFlags properties,
                             VkMemoryHeapFlags heap_properties,
                             uint32_t memory_types);
+  VkQueue GetQueue();
+  uint32_t GetQueueFamily();
 };
 
 } // namespace vk

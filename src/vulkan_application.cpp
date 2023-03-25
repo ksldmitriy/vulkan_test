@@ -2,7 +2,14 @@
 
 void VulkanApplication::Run() {
   InitVulkan();
+
   CreateBuffers();
+
+  CreateCommandPool();
+  CreateCommandBuffer();
+
+  FillCommandBuffer();
+  RunQueue();
 }
 
 void VulkanApplication::InitVulkan() {
@@ -22,6 +29,101 @@ void VulkanApplication::InitVulkan() {
 
   device = unique_ptr<vk::Device>(
       new vk::Device(physical_device, device_create_info));
+}
+
+void VulkanApplication::FillCommandBuffer() {
+  VkCommandBufferBeginInfo begin_info;
+  begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+  begin_info.pNext = nullptr;
+  begin_info.flags = 0;
+  begin_info.pInheritanceInfo = nullptr;
+
+  VkResult result = vkBeginCommandBuffer(command_buffer, &begin_info);
+  if (result) {
+    throw VulkanException("cant begin command buffer");
+  }
+
+  // flush mapped memory barrier
+  VkBufferMemoryBarrier buffer_memory_barrier;
+  buffer_memory_barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+  buffer_memory_barrier.pNext = nullptr;
+  buffer_memory_barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+  buffer_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+  buffer_memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  buffer_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  buffer_memory_barrier.buffer = buffers[0]->GetHandle();
+  buffer_memory_barrier.offset = 0;
+  buffer_memory_barrier.size = VK_WHOLE_SIZE;
+
+  vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_HOST_BIT,
+                       VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1,
+                       &buffer_memory_barrier, 0, nullptr);
+
+  // mode data
+  VkBufferCopy region;
+  region.dstOffset = 0;
+  region.srcOffset = 0;
+  region.size = buffers[0]->GetSize();
+
+  vkCmdCopyBuffer(command_buffer, buffers[0]->GetHandle(),
+                  buffers[1]->GetHandle(), 1, &region);
+
+  vkEndCommandBuffer(command_buffer);
+}
+
+void VulkanApplication::RunQueue() {
+  VkSubmitInfo submit_info;
+  submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  submit_info.pNext = nullptr;
+  submit_info.waitSemaphoreCount = 0;
+  submit_info.commandBufferCount = 1;
+  submit_info.pCommandBuffers = &command_buffer;
+  submit_info.signalSemaphoreCount = 0;
+
+  VkResult result = vkQueueSubmit(device->GetQueue(), 1, &submit_info, 0);
+  if (result) {
+    throw VulkanException("cant submit queue");
+  }
+
+  result = vkQueueWaitIdle(device->GetQueue());
+  if (result) {
+    throw VulkanException("queue wait idle failed");
+  }
+
+  void *mapped_data = buffers[1]->Map();
+
+  cout << (char *)mapped_data << endl;
+
+  buffers[1]->Unmap();
+}
+
+void VulkanApplication::CreateCommandPool() {
+  VkCommandPoolCreateInfo create_info;
+  create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+  create_info.pNext = nullptr;
+  create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+  create_info.queueFamilyIndex = device->GetQueueFamily();
+
+  VkResult result = vkCreateCommandPool(device->GetHandle(), &create_info,
+                                        nullptr, &command_pool);
+  if (result) {
+    throw VulkanException("cant create command pool");
+  }
+}
+
+void VulkanApplication::CreateCommandBuffer() {
+  VkCommandBufferAllocateInfo allocate_info;
+  allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  allocate_info.pNext = nullptr;
+  allocate_info.commandPool = command_pool;
+  allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocate_info.commandBufferCount = 1;
+
+  VkResult result = vkAllocateCommandBuffers(device->GetHandle(),
+                                             &allocate_info, &command_buffer);
+  if (result) {
+    throw VulkanException("cant allocate command buffer");
+  }
 }
 
 void VulkanApplication::CreateBuffers() {
@@ -52,12 +154,10 @@ void VulkanApplication::CreateBuffers() {
     memory->BindBuffer(*buffers[i]);
   }
 
-  buffers[0]->Map();
+  void *mapped_memory = buffers[0]->Map();
+
+  memcpy((char *)mapped_memory, "test", 5);
+
   buffers[0]->Flush();
   buffers[0]->Unmap();
-
-  // unbind buffer
-  for (int i = 0; i < 4; i++) {
-    buffers[i]->Destroy();
-  }
 }

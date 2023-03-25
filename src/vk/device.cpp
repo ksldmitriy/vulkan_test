@@ -6,6 +6,7 @@ namespace vk {
 Device::Device(shared_ptr<PhysicalDevice> physical_device,
                DeviceCreateInfo &create_info) {
   this->physical_device = physical_device;
+  queue_family = create_info.queue_family;
 
   // queue create info
   VkDeviceQueueCreateInfo vk_queue_create_info;
@@ -13,7 +14,7 @@ Device::Device(shared_ptr<PhysicalDevice> physical_device,
   vk_queue_create_info.pNext = nullptr;
   vk_queue_create_info.flags = 0;
   vk_queue_create_info.queueCount = 1;
-  vk_queue_create_info.queueFamilyIndex = create_info.queue_family;
+  vk_queue_create_info.queueFamilyIndex = queue_family;
   float queue_priority = 0;
   vk_queue_create_info.pQueuePriorities = &queue_priority;
 
@@ -43,7 +44,14 @@ Device::Device(shared_ptr<PhysicalDevice> physical_device,
   if (result) {
     throw VulkanException("cant create device");
   }
+
+  // get queue
+  vkGetDeviceQueue(handle, queue_family, 0, &queue);
 }
+
+VkQueue Device::GetQueue() { return queue; }
+
+uint32_t Device::GetQueueFamily() { return queue_family; }
 
 PhysicalDevice &Device::GetPhysicalDevice() { return *physical_device; }
 
