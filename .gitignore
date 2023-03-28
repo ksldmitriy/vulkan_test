@@ -11,6 +11,9 @@ src/vk/*
 !src/*.hpp
 !CMakeLists.txt
 !build.sh
+!shaders
+shaders/*
+!shaders/*.comp
 application.cpp
 application.hh
 vulkan.cpp

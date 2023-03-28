@@ -1,7 +1,7 @@
-#include "vulkan_application.hpp"
+#include "compute_vulkan_application.hpp"
 #include "vk/templates.hpp"
 
-void VulkanApplication::Run() {
+void ComputeVulkanApplication::Run() {
   InitVulkan();
 
   CreateBuffers();
@@ -16,7 +16,7 @@ void VulkanApplication::Run() {
   RunQueue();
 }
 
-void VulkanApplication::InitVulkan() {
+void ComputeVulkanApplication::InitVulkan() {
   // create instance
   vk::InstanceCreateInfo instance_create_info;
   instance = unique_ptr<vk::Instance>(new vk::Instance(instance_create_info));
@@ -35,7 +35,7 @@ void VulkanApplication::InitVulkan() {
       new vk::Device(physical_device, device_create_info));
 }
 
-void VulkanApplication::CreateShaderModule() {
+void ComputeVulkanApplication::CreateShaderModule() {
   // read shader from file
 
   ifstream file("shaders/test.spv");
@@ -59,7 +59,7 @@ void VulkanApplication::CreateShaderModule() {
     throw VulkanException("cant create shader module");
   }
 }
-void VulkanApplication::CreatePipeline() {
+void ComputeVulkanApplication::CreatePipeline() {
   VkResult result;
 
   VkDescriptorSetLayoutBinding descriptor_set_layout_binding;
@@ -158,7 +158,7 @@ void VulkanApplication::CreatePipeline() {
   }
 }
 
-void VulkanApplication::FillCommandBuffer() {
+void ComputeVulkanApplication::FillCommandBuffer() {
   VkCommandBufferBeginInfo begin_info = vk::command_buffer_begin_info_template;
   begin_info.flags = 0;
   begin_info.pInheritanceInfo = nullptr;
@@ -199,7 +199,7 @@ void VulkanApplication::FillCommandBuffer() {
   vkEndCommandBuffer(command_buffer);
 }
 
-void VulkanApplication::RunQueue() {
+void ComputeVulkanApplication::RunQueue() {
   VkSubmitInfo submit_info = vk::submit_info_template;
   submit_info.commandBufferCount = 1;
   submit_info.pCommandBuffers = &command_buffer;
@@ -223,7 +223,7 @@ void VulkanApplication::RunQueue() {
   buffers[0]->Unmap();
 }
 
-void VulkanApplication::CreateCommandPool() {
+void ComputeVulkanApplication::CreateCommandPool() {
   VkCommandPoolCreateInfo create_info;
   create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
   create_info.pNext = nullptr;
@@ -237,7 +237,7 @@ void VulkanApplication::CreateCommandPool() {
   }
 }
 
-void VulkanApplication::CreateCommandBuffer() {
+void ComputeVulkanApplication::CreateCommandBuffer() {
   VkCommandBufferAllocateInfo allocate_info;
   allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   allocate_info.pNext = nullptr;
@@ -252,7 +252,7 @@ void VulkanApplication::CreateCommandBuffer() {
   }
 }
 
-void VulkanApplication::CreateBuffers() {
+void ComputeVulkanApplication::CreateBuffers() {
   // create buffers
   vk::BufferCreateInfo buffer_create_info;
   buffer_create_info.size = 1024;

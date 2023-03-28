@@ -2,7 +2,7 @@
 #include "vk/instance.hpp"
 
 int main() {
-  VulkanApplication application;
+  ComputeVulkanApplication application;
 
   try {
     application.Run();
