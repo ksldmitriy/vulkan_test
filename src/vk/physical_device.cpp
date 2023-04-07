@@ -17,7 +17,44 @@ PhysicalDevice::PhysicalDevice(VkPhysicalDevice handle) {
                                            queue_families_properties.data());
 }
 
+VkSurfaceCapabilitiesKHR
+PhysicalDevice::GetSurfaceCapabilities(VkSurfaceKHR surface) {
+  VkSurfaceCapabilitiesKHR surface_capabilities;
+  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, surface,
+                                            &surface_capabilities);
+
+  return surface_capabilities;
+}
+
+vector<VkSurfaceFormatKHR>
+PhysicalDevice::GetSurfaceFormats(VkSurfaceKHR surface) {
+  uint32_t formats_count;
+  vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formats_count,
+                                       nullptr);
+
+  std::vector<VkSurfaceFormatKHR> surface_formats(formats_count);
+  vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formats_count,
+                                       surface_formats.data());
+
+  return surface_formats;
+}
+
+vector<VkPresentModeKHR>
+PhysicalDevice::GetSurfacePresentModes(VkSurfaceKHR surface) {
+  uint32_t present_mode_count;
+  vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface,
+                                            &present_mode_count, nullptr);
+
+  std::vector<VkPresentModeKHR> present_modes(present_mode_count);
+  vkGetPhysicalDeviceSurfacePresentModesKHR(
+      handle, surface, &present_mode_count, present_modes.data());
+
+  return present_modes;
+}
+
 VkPhysicalDevice PhysicalDevice::GetHandle() { return handle; }
+
+VkPhysicalDeviceLimits PhysicalDevice::GetLimits() { return properties.limits; }
 
 uint32_t PhysicalDevice::ChooseQueueFamily(VkQueueFlags requirements) {
   for (uint32_t i = 0; i < queue_families_properties.size(); i++) {

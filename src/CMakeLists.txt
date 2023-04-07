@@ -10,6 +10,7 @@ set(CMAKE_BUILD_TYPE Debug)
 #project
 
 file(GLOB vulkan_test_SRC *.cpp vk/*.cpp)
+list(REMOVE_ITEM vulkan_test_SRC ${CMAKE_SOURCE_DIR}/compute_vulkan_application.cpp)
 
 add_executable(${PROJECT_NAME} ${vulkan_test_SRC}) 
 
@@ -17,6 +18,6 @@ add_executable(${PROJECT_NAME} ${vulkan_test_SRC})
 
 link_directories(/usr/lib)
 
-target_link_libraries(vulkan_test libvulkan.so)
+target_link_libraries(vulkan_test libvulkan.so libglfw.so)
 
 

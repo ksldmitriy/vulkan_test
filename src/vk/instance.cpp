@@ -33,6 +33,8 @@ void Instance::CreateInstance(InstanceCreateInfo &create_info) {
   }
 }
 
+VkInstance Instance::GetHandle() { return handle; }
+
 void Instance::EnumPhysicalDevices() {
   vector<VkPhysicalDevice> raw_devices;
 

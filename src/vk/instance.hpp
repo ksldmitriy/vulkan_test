@@ -30,6 +30,8 @@ public:
   Instance(InstanceCreateInfo &create_info);
   Instance(Instance &) = delete;
   Instance &operator=(Instance &) = delete;
+
+  VkInstance GetHandle();
 };
 
 } // namespace vk

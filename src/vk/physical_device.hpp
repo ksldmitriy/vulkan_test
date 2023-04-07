@@ -1,5 +1,4 @@
 #pragma once
-
 #include "exception.hpp"
 #include <vector>
 #include <vulkan/vulkan.h>
@@ -21,10 +20,14 @@ public:
   PhysicalDevice &operator=(PhysicalDevice &) = delete;
 
   VkPhysicalDevice GetHandle();
+  VkPhysicalDeviceLimits GetLimits();
   uint32_t ChooseQueueFamily(VkQueueFlags requirements);
   uint32_t ChooseMemoryType(VkMemoryPropertyFlags properties,
                             VkMemoryHeapFlags heap_properties,
                             uint32_t memory_types);
+  VkSurfaceCapabilitiesKHR GetSurfaceCapabilities(VkSurfaceKHR surface);
+  vector<VkSurfaceFormatKHR> GetSurfaceFormats(VkSurfaceKHR surface);
+  vector<VkPresentModeKHR> GetSurfacePresentModes(VkSurfaceKHR surface);
 };
 
 } // namespace vk

@@ -1,8 +1,7 @@
 #include "main.hpp"
-#include "vk/instance.hpp"
 
 int main() {
-  ComputeVulkanApplication application;
+  GraphicsVulkanApplication application;
 
   try {
     application.Run();

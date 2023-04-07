@@ -2,9 +2,12 @@
 
 namespace vk {
 
-DeviceMemory::DeviceMemory(VkDevice device, VkDeviceSize size, uint32_t type) {
-  this->device = device;
+DeviceMemory::DeviceMemory(Device &device, VkDeviceSize size, uint32_t type) {
+  this->device = device.GetHandle();
   this->size = size;
+
+  VkPhysicalDeviceLimits device_limits = device.GetPhysicalDevice().GetLimits();
+  non_coherent_atom_size = device_limits.nonCoherentAtomSize;
 
   VkMemoryAllocateInfo vk_allocate_info;
   vk_allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -13,7 +16,7 @@ DeviceMemory::DeviceMemory(VkDevice device, VkDeviceSize size, uint32_t type) {
   vk_allocate_info.memoryTypeIndex = type;
 
   VkResult result =
-      vkAllocateMemory(device, &vk_allocate_info, nullptr, &handle);
+      vkAllocateMemory(this->device, &vk_allocate_info, nullptr, &handle);
   if (result) {
     throw VulkanException("cant allocate memory");
   }
@@ -28,9 +31,23 @@ DeviceMemory::DeviceMemory(VkDevice device, VkDeviceSize size, uint32_t type) {
 
 DeviceMemory::~DeviceMemory() { Free(); }
 
+VkDeviceSize DeviceMemory::CalculateMemorySize(vector<Buffer *> buffers) {
+  VkDeviceSize size = 0;
+
+  for (int i = 0; i < buffers.size(); i++) {
+    VkMemoryRequirements requirements = buffers[i]->GetMemoryRequirements();
+    size += requirements.alignment;
+    size += requirements.size;
+  }
+
+  return size;
+}
+
 void *DeviceMemory::MapMemory(VkBuffer buffer) {
   uint32_t segment_index = FindSegment(buffer);
-  mapped_segment = memory_segments[segment_index];
+  MemorySegment &buffer_segment = memory_segments[segment_index];
+
+  mapped_segment = CreateAlignedMemorySegment(buffer_segment);
 
   void *mapped_ptr;
   VkResult result = vkMapMemory(device, handle, mapped_segment.offset,
@@ -40,6 +57,26 @@ void *DeviceMemory::MapMemory(VkBuffer buffer) {
   }
 
   return mapped_ptr;
+}
+
+DeviceMemory::MemorySegment
+DeviceMemory::CreateAlignedMemorySegment(MemorySegment &buffer_segment) {
+  MemorySegment aligned_segment;
+
+  // align pos
+  aligned_segment.offset =
+      tools::align_down(buffer_segment.offset, non_coherent_atom_size);
+  aligned_segment.offset = max(aligned_segment.offset, (VkDeviceSize)0);
+
+  VkDeviceSize aligned_size =
+      buffer_segment.size + (buffer_segment.offset - aligned_segment.offset);
+
+  // align size
+  aligned_segment.size = tools::align_up(aligned_size, non_coherent_atom_size);
+  aligned_segment.size =
+      min(aligned_segment.size, size - aligned_segment.offset);
+
+  return aligned_segment;
 }
 
 void DeviceMemory::Flush() {
@@ -81,8 +118,7 @@ void DeviceMemory::BindBuffer(Buffer &buffer) {
   GetAlignedSegments(segment, requirements.alignment, pos, size);
   OccupieSegment(segment_index, requirements.size, buffer.handle);
 
-  VkResult result =
-      vkBindBufferMemory(device, buffer.GetHandle(), handle, pos);
+  VkResult result = vkBindBufferMemory(device, buffer.GetHandle(), handle, pos);
   if (result) {
     throw VulkanException("cant bind buffer to memory");
   }
@@ -200,13 +236,8 @@ void DeviceMemory::GetAlignedSegments(MemorySegment &segment,
                                       VkDeviceSize alignment,
                                       VkDeviceSize &aligned_pos,
                                       VkDeviceSize &aligned_size) {
-  aligned_pos = GetAlignedPos(segment.offset, alignment);
+  aligned_pos = tools::align_up(segment.offset, alignment);
   aligned_size = segment.size - aligned_pos + segment.offset;
-}
-
-VkDeviceSize DeviceMemory::GetAlignedPos(VkDeviceSize pos,
-                                         VkDeviceSize alignment) {
-  return ((pos + alignment - 1) / alignment) * alignment;
 }
 
 } // namespace vk

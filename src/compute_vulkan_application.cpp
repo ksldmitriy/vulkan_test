@@ -59,6 +59,7 @@ void ComputeVulkanApplication::CreateShaderModule() {
     throw VulkanException("cant create shader module");
   }
 }
+
 void ComputeVulkanApplication::CreatePipeline() {
   VkResult result;
 
