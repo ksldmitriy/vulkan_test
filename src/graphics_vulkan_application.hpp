@@ -53,6 +53,11 @@ private:
   VkVertexInputBindingDescription vertex_binding_descriptor;
   VkDescriptorPool descriptor_pool;
 
+  VkDescriptorSetLayout descriptor_set_layout;
+  VkPipelineLayout pipeline_layout;
+
+  VkPipeline pipeline;
+
   VkRenderPass render_pass;
 
   void CreateWindow();

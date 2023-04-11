@@ -1,10 +1,10 @@
 #!/bin/bash
 echo === CMAKE ===
 
-cmake -S ./src -B ./out
+cmake -S ./src -B ./out  
 
 echo === BUILD ===
-make -C ./out;
+make -j 16 -C ./out;
 
 echo === SHADERS ===
 glslc shaders/test.comp -o shaders/test.spv

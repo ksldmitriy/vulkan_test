@@ -41,7 +41,7 @@ VkPipelineShaderStageCreateInfo pipeline_shader_stage_create_info_template = {
     .flags = 0,
 };
 
-VkDescriptorSetLayoutCreateInfo descriptor_set_create_info_template = {
+VkDescriptorSetLayoutCreateInfo descriptor_set_layout_create_info_template = {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
     .pNext = nullptr,
     .flags = 0};
@@ -49,7 +49,8 @@ VkDescriptorSetLayoutCreateInfo descriptor_set_create_info_template = {
 VkPipelineLayoutCreateInfo pipeline_layout_create_info_template = {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
     .pNext = nullptr,
-    .flags = 0};
+    .flags = 0,
+    .pushConstantRangeCount = 0};
 
 VkDescriptorPoolCreateInfo descriptor_pool_create_info_template = {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -142,12 +143,29 @@ VkPipelineRasterizationStateCreateInfo
         .depthBiasClamp = 0,
         .depthBiasSlopeFactor = 0};
 
-VkPipelineMultisampleStateCreateInfo pipeline_multisample_state_create_info = {
-    .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+VkPipelineMultisampleStateCreateInfo
+    pipeline_multisample_state_create_info_template = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+        .sampleShadingEnable = VK_FALSE,
+        .minSampleShading = 1,
+        .alphaToCoverageEnable = VK_FALSE,
+        .alphaToOneEnable = VK_FALSE};
+
+VkPipelineColorBlendStateCreateInfo
+    pipeline_color_blend_state_create_info_template = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .logicOpEnable = VK_FALSE,
+        .logicOp = VK_LOGIC_OP_COPY,
+        .blendConstants = {1, 1, 1, 1}};
+
+VkGraphicsPipelineCreateInfo graphics_pipeline_create_info_template = {
+    .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
     .pNext = nullptr,
-    .flags = 0,
-    .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-    .sampleShadingEnable = VK_FALSE,
-    .minSampleShading = 1};
+    .flags = 0};
 
 } // namespace vk

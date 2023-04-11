@@ -11,7 +11,8 @@ extern VkShaderModuleCreateInfo shader_module_create_info_template;
 extern VkComputePipelineCreateInfo compute_pipeline_create_info_template;
 extern VkPipelineShaderStageCreateInfo
     pipeline_shader_stage_create_info_template;
-extern VkDescriptorSetLayoutCreateInfo descriptor_set_create_info_template;
+extern VkDescriptorSetLayoutCreateInfo
+    descriptor_set_layout_create_info_template;
 extern VkPipelineLayoutCreateInfo pipeline_layout_create_info_template;
 extern VkDescriptorPoolCreateInfo descriptor_pool_create_info_template;
 extern VkDescriptorSetAllocateInfo descriptor_set_allocate_info_template;
@@ -31,6 +32,9 @@ extern VkPipelineViewportStateCreateInfo pipeline_viewport_create_info_template;
 extern VkPipelineRasterizationStateCreateInfo
     pipeline_rasterization_state_create_info_template;
 extern VkPipelineMultisampleStateCreateInfo
-    pipeline_multisample_state_create_info;
+    pipeline_multisample_state_create_info_template;
+extern VkPipelineColorBlendStateCreateInfo
+    pipeline_color_blend_state_create_info_template;
+extern VkGraphicsPipelineCreateInfo graphics_pipeline_create_info_template;
 
 } // namespace vk

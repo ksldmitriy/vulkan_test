@@ -99,7 +99,7 @@ void GraphicsVulkanApplication::CreateGraphicsPipeline() {
       vk::vertex_input_create_info_template;
   vertex_input_create_info.vertexBindingDescriptionCount = 1;
   vertex_input_create_info.pVertexBindingDescriptions =
-      &vertex_binding_descriptor;
+      &vertex_binding_description;
   vertex_input_create_info.vertexAttributeDescriptionCount = 2;
   vertex_input_create_info.pVertexAttributeDescriptions =
       vertex_attribute_desctiptions;
@@ -139,10 +139,82 @@ void GraphicsVulkanApplication::CreateGraphicsPipeline() {
   rasterization_state_create_info.rasterizerDiscardEnable = VK_FALSE;
   rasterization_state_create_info.polygonMode = VK_POLYGON_MODE_FILL;
   rasterization_state_create_info.cullMode = 0;
-  rasterization_state_create_info.frontFace  = VK_FRONT_FACE_CLOCKWISE;
+  rasterization_state_create_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
   rasterization_state_create_info.lineWidth = 1;
 
-  VkPipelineMultisampleStateCreateInfo;
+  VkPipelineMultisampleStateCreateInfo multisample_state_create_info =
+      vk::pipeline_multisample_state_create_info_template;
+
+  VkPipelineColorBlendAttachmentState blend_attachment_state = {};
+  blend_attachment_state.blendEnable = VK_FALSE;
+  blend_attachment_state.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+  blend_attachment_state.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+  blend_attachment_state.colorBlendOp = VK_BLEND_OP_ADD;
+  blend_attachment_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+  blend_attachment_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+  blend_attachment_state.alphaBlendOp = VK_BLEND_OP_ADD;
+  blend_attachment_state.colorWriteMask =
+      VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+      VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+
+  VkPipelineColorBlendStateCreateInfo color_blend_create_info =
+      vk::pipeline_color_blend_state_create_info_template;
+  color_blend_create_info.attachmentCount = 1;
+  color_blend_create_info.pAttachments = &blend_attachment_state;
+
+  VkDescriptorSetLayoutBinding descriptor_set_layout_binding;
+  descriptor_set_layout_binding.binding = 0;
+  descriptor_set_layout_binding.descriptorType =
+      VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  descriptor_set_layout_binding.descriptorCount = 1;
+  descriptor_set_layout_binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+  VkDescriptorSetLayoutCreateInfo descriptor_set_layout_create_info =
+      vk::descriptor_set_layout_create_info_template;
+  descriptor_set_layout_create_info.bindingCount = 1;
+  descriptor_set_layout_create_info.pBindings = &descriptor_set_layout_binding;
+
+  VkResult result;
+
+  result = vkCreateDescriptorSetLayout(device->GetHandle(),
+                                       &descriptor_set_layout_create_info,
+                                       nullptr, &descriptor_set_layout);
+  if (result) {
+    throw VulkanException("cant create descriptor set");
+  }
+
+  VkPipelineLayoutCreateInfo layout_create_info =
+      vk::pipeline_layout_create_info_template;
+  layout_create_info.setLayoutCount = 1;
+  layout_create_info.pSetLayouts = &descriptor_set_layout;
+
+  result = vkCreatePipelineLayout(device->GetHandle(), &layout_create_info,
+                                  nullptr, &pipeline_layout);
+  if (result) {
+    throw VulkanException("cant create pipeline layout");
+  }
+
+  VkGraphicsPipelineCreateInfo pipeline_create_info =
+      vk::graphics_pipeline_create_info_template;
+  pipeline_create_info.stageCount = 2;
+  pipeline_create_info.pStages = shader_stages;
+  pipeline_create_info.pVertexInputState = &vertex_input_create_info;
+  pipeline_create_info.pInputAssemblyState = &input_assembly_create_info;
+  pipeline_create_info.pViewportState = &viewport_create_info;
+  pipeline_create_info.pRasterizationState = &rasterization_state_create_info;
+  pipeline_create_info.pMultisampleState = &multisample_state_create_info;
+  pipeline_create_info.pColorBlendState = &color_blend_create_info;
+  pipeline_create_info.layout = pipeline_layout;
+  pipeline_create_info.renderPass = render_pass;
+  pipeline_create_info.subpass = 0;
+  pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
+  pipeline_create_info.basePipelineIndex = -1;
+
+  result = vkCreateGraphicsPipelines(device->GetHandle(), 0, 1,
+                                     &pipeline_create_info, nullptr, &pipeline);
+  if (result) {
+    throw VulkanException("cant create graphics pipeline");
+  }
 }
 
 void GraphicsVulkanApplication::CreateImagesView() {
