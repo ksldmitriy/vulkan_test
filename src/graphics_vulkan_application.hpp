@@ -52,11 +52,14 @@ private:
 
   VkVertexInputBindingDescription vertex_binding_descriptor;
   VkDescriptorPool descriptor_pool;
+  VkDescriptorSet descriptor_set;
 
   VkDescriptorSetLayout descriptor_set_layout;
   VkPipelineLayout pipeline_layout;
 
   VkPipeline pipeline;
+
+  vector<VkCommandBuffer> command_buffers;
 
   VkRenderPass render_pass;
 
@@ -87,6 +90,8 @@ private:
   ChooseSurfaceTransform(VkSurfaceCapabilitiesKHR surface_capabilities);
   VkExtent2D
   ChooseSwapchainExtend(VkSurfaceCapabilitiesKHR surface_capabilities);
+
+  void Draw();
 
 public:
   void Run();

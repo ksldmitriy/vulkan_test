@@ -36,5 +36,9 @@ extern VkPipelineMultisampleStateCreateInfo
 extern VkPipelineColorBlendStateCreateInfo
     pipeline_color_blend_state_create_info_template;
 extern VkGraphicsPipelineCreateInfo graphics_pipeline_create_info_template;
+extern VkCommandBufferAllocateInfo command_buffer_allocate_info_template;
+extern VkImageMemoryBarrier image_memory_barrier_template;
+extern VkRenderPassBeginInfo render_pass_begin_info_template;
+extern VkPresentInfoKHR present_info_template;
 
 } // namespace vk

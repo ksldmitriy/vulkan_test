@@ -11,6 +11,8 @@ set(CMAKE_BUILD_TYPE Debug)
 
 file(GLOB vulkan_test_SRC *.cpp vk/*.cpp)
 list(REMOVE_ITEM vulkan_test_SRC ${CMAKE_SOURCE_DIR}/compute_vulkan_application.cpp)
+list(FILTER vulkan_test_SRC EXCLUDE REGEX ${CMAKE_SOURCE_DIR}/\#*.cpp)
+list(FILTER vulkan_test_SRC EXCLUDE REGEX ${CMAKE_SOURCE_DIR}/*/\#*.cpp)
 
 add_executable(${PROJECT_NAME} ${vulkan_test_SRC}) 
 

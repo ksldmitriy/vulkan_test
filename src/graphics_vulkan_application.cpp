@@ -29,6 +29,8 @@ void GraphicsVulkanApplication::CreateWindow() {
   glfwSetWindowSizeCallback(window, WindowResizeCallback);
 }
 
+
+
 void GraphicsVulkanApplication::Prepare() {
   InitVulkan();
   CreateWindowSurface();
@@ -69,10 +71,115 @@ void GraphicsVulkanApplication::CreateDescriptorSet() {
       vk::descriptor_set_allocate_info_template;
   allocate_info.descriptorPool = descriptor_pool;
   allocate_info.descriptorSetCount = 1;
-  // allocate_info.pSetLayouts = &descriptor_set_layout;
+  allocate_info.pSetLayouts = &descriptor_set_layout;
+
+  VkResult result = vkAllocateDescriptorSets(device->GetHandle(),
+                                             &allocate_info, &descriptor_set);
+  if (result) {
+    throw VulkanException("cant allocate descriptor set");
+  }
+
+  VkDescriptorBufferInfo descriptor_buffer_info;
+  descriptor_buffer_info.buffer = uniform_buffer->GetHandle();
+  descriptor_buffer_info.offset = 0;
+  descriptor_buffer_info.range = sizeof(UniformData);
+
+  VkWriteDescriptorSet write_descriptor_set = vk::write_descriptor_set_template;
+  write_descriptor_set.dstSet = descriptor_set;
+  write_descriptor_set.descriptorCount = 1;
+  write_descriptor_set.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  write_descriptor_set.pBufferInfo = &descriptor_buffer_info;
+  write_descriptor_set.dstBinding = 0;
+
+  vkUpdateDescriptorSets(device->GetHandle(), 1, &write_descriptor_set, 0,
+                         nullptr);
 }
 
-void GraphicsVulkanApplication::CreateCommandBuffer() {}
+void GraphicsVulkanApplication::CreateCommandBuffer() {
+  command_buffers.resize(swapchain_images.size());
+
+  VkCommandBufferAllocateInfo allocate_info =
+      vk::command_buffer_allocate_info_template;
+  allocate_info.commandPool = command_pool;
+  allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocate_info.commandBufferCount = command_buffers.size();
+
+  VkResult result;
+
+  result = vkAllocateCommandBuffers(device->GetHandle(), &allocate_info,
+                                    command_buffers.data());
+  if (result) {
+    throw VulkanException("cant allocate command buffers");
+  }
+
+  VkCommandBufferBeginInfo begin_info = vk::command_buffer_begin_info_template;
+
+  VkImageSubresourceRange image_subresource_range;
+  image_subresource_range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  image_subresource_range.baseMipLevel = 0;
+  image_subresource_range.levelCount = 1;
+  image_subresource_range.baseArrayLayer = 0;
+  image_subresource_range.layerCount = 1;
+
+  VkClearValue clear_color = {0.1, 0.3, 0.1, 0.1};
+
+  for (size_t i = 0; i < command_buffers.size(); i++) {
+    vkBeginCommandBuffer(command_buffers[i], &begin_info);
+
+    VkImageMemoryBarrier present_to_draw_barrier =
+        vk::image_memory_barrier_template;
+    present_to_draw_barrier.srcAccessMask = 0;
+    present_to_draw_barrier.dstAccessMask =
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    present_to_draw_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    present_to_draw_barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    present_to_draw_barrier.srcQueueFamilyIndex = queue_family;
+    present_to_draw_barrier.dstQueueFamilyIndex = queue_family;
+    present_to_draw_barrier.image = swapchain_images[i];
+    present_to_draw_barrier.subresourceRange = image_subresource_range;
+
+    vkCmdPipelineBarrier(command_buffers[i],
+                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0,
+                         nullptr, 0, nullptr, 1, &present_to_draw_barrier);
+
+    VkRenderPassBeginInfo render_pass_begin_info =
+        vk::render_pass_begin_info_template;
+    render_pass_begin_info.renderPass = render_pass;
+    render_pass_begin_info.framebuffer = swapchain_framebuffers[i];
+    render_pass_begin_info.renderArea.offset.x = 0;
+    render_pass_begin_info.renderArea.offset.y = 0;
+    render_pass_begin_info.renderArea.extent = swapchain_extent;
+    render_pass_begin_info.clearValueCount = 1;
+    render_pass_begin_info.pClearValues = &clear_color;
+
+    vkCmdBeginRenderPass(command_buffers[i], &render_pass_begin_info,
+                         VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdBindDescriptorSets(command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            pipeline_layout, 0, 1, &descriptor_set, 0, nullptr);
+
+    vkCmdBindPipeline(command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      pipeline);
+
+    VkDeviceSize offset = 0;
+    VkBuffer vertex_buffer_handle = vertex_buffer->GetHandle();
+    vkCmdBindVertexBuffers(command_buffers[i], 0, 1, &vertex_buffer_handle,
+                           &offset);
+
+    vkCmdBindIndexBuffer(command_buffers[i], index_buffer->GetHandle(), 0,
+                         VK_INDEX_TYPE_UINT32);
+
+    vkCmdDrawIndexed(command_buffers[i], 3, 1, 0, 0, 0);
+
+    vkCmdEndRenderPass(command_buffers[i]);
+
+    result = vkEndCommandBuffer(command_buffers[i]);
+    if (result) {
+      throw VulkanException("cant end command buffer");
+    }
+  }
+}
 
 void GraphicsVulkanApplication::CreateGraphicsPipeline() {
   CreateShaderModule("shaders/test_v.spv", vertex_shader_module);
@@ -398,7 +505,55 @@ void GraphicsVulkanApplication::CreateWindowSurface() {
   }
 }
 
-void GraphicsVulkanApplication::RunRenderLoop() {}
+void GraphicsVulkanApplication::RunRenderLoop() {
+  UpdateUniformBuffer();
+
+  while (!glfwWindowShouldClose(window)) {
+	Draw();
+
+    glfwPollEvents();
+  }
+}
+
+void GraphicsVulkanApplication::Draw() {
+  VkResult result;
+
+  uint32_t image_index;
+  result = vkAcquireNextImageKHR(device->GetHandle(), swapchain, UINT64_MAX,
+                                 image_ready_semaphore, VK_NULL_HANDLE,
+                                 &image_index);
+  if (result) {
+    throw VulkanException("cant get next swapchain image");
+  }
+
+  VkPipelineStageFlags wait_dst_stage_mask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+
+  VkSubmitInfo submit_info = vk::submit_info_template;
+  submit_info.waitSemaphoreCount = 1;
+  submit_info.pWaitSemaphores = &image_ready_semaphore;
+  submit_info.signalSemaphoreCount = 1;
+  submit_info.pSignalSemaphores = &render_finished_semaphore;
+  submit_info.pWaitDstStageMask = &wait_dst_stage_mask;
+  submit_info.commandBufferCount = 1;
+  submit_info.pCommandBuffers = &command_buffers[image_index];
+
+  result = vkQueueSubmit(device->GetQueue(), 1, &submit_info, VK_NULL_HANDLE);
+  if (result) {
+    throw VulkanException("cant submit to queue");
+  }
+
+  VkPresentInfoKHR present_info = vk::present_info_template;
+  present_info.waitSemaphoreCount = 1;
+  present_info.pWaitSemaphores = &render_finished_semaphore;
+  present_info.swapchainCount = 1;
+  present_info.pSwapchains = &swapchain;
+  present_info.pImageIndices = &image_index;
+
+  result = vkQueuePresentKHR(device->GetQueue(), &present_info);
+  if(result){
+	throw VulkanException("queue present failed");
+  }
+}
 
 void GraphicsVulkanApplication::CreateVertexBuffer() {
   std::vector<Vertex> vertices = {{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},

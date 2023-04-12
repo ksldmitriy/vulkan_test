@@ -11,7 +11,18 @@ VkBufferMemoryBarrier buffer_barrier_template = {
     .size = VK_WHOLE_SIZE};
 
 VkCommandBufferBeginInfo command_buffer_begin_info_template = {
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, .pNext = nullptr};
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+    .pNext = nullptr,
+    .flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT};
+
+VkPresentInfoKHR present_info_template = {
+    .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR, .pNext = nullptr};
+
+VkRenderPassBeginInfo render_pass_begin_info_template = {
+    .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO, .pNext = nullptr};
+
+VkImageMemoryBarrier image_memory_barrier_template = {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER, .pNext = 0};
 
 VkCommandPoolCreateInfo command_pool_create_info_template{
     .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -167,5 +178,8 @@ VkGraphicsPipelineCreateInfo graphics_pipeline_create_info_template = {
     .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
     .pNext = nullptr,
     .flags = 0};
+
+VkCommandBufferAllocateInfo command_buffer_allocate_info_template = {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, .pNext = nullptr};
 
 } // namespace vk
